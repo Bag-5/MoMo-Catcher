@@ -11,7 +11,7 @@ Analyze the input and return ONLY a JSON object with these fields:
 {
   "inputType": "sms" | "phone" | "momo_ref",
   "isScam": boolean,
-  "confidence": number between 0 and 1,
+  "confidence": number between 0 and 1 (0 = definitely safe, 1 = definitely a scam),
   "riskLevel": "low" | "medium" | "high",
   "reason": short explanation,
   "details": array of specific scam indicators found,
