@@ -56,7 +56,7 @@ async function callOpenRouter(input: string): Promise<AnalysisResult | null> {
         ],
         response_format: { type: 'json_object' },
         temperature: 0.1,
-        max_tokens: 200,
+        max_tokens: 500,
       }),
       signal: AbortSignal.timeout(45000),
     })
