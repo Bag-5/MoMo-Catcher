@@ -36,6 +36,42 @@ MoMo refs: typical format is MOMO + alphanumeric, 8-20 chars.
 
 Be thorough but fair. Legitimate transaction SMS from banks or networks should score low.`
 
+function tryParseJson(text: string): Partial<AnalysisResult> | null {
+  const trimmed = text.trim()
+  const braceStart = trimmed.indexOf('{')
+  const braceEnd = trimmed.lastIndexOf('}')
+  if (braceStart !== -1 && braceEnd > braceStart) {
+    const candidate = trimmed.slice(braceStart, braceEnd + 1)
+    try {
+      return JSON.parse(candidate) as Partial<AnalysisResult>
+    } catch {
+      const fixed = candidate
+        .replace(/(["'])?\b(\w+)\b(["'])?\s*:/g, '"$2": ')
+        .replace(/:\s*'([^']+)'/g, ':"$1"')
+        .replace(/,\s*([}\]])/g, '$1')
+      try {
+        return JSON.parse(fixed) as Partial<AnalysisResult>
+      } catch {
+        return null
+      }
+    }
+  }
+  return null
+}
+
+function validateResult(result: Partial<AnalysisResult>, input: string): AnalysisResult {
+  return {
+    inputType: result.inputType ?? 'sms',
+    originalInput: input,
+    isScam: result.isScam ?? false,
+    confidence: typeof result.confidence === 'number' ? Math.max(0, Math.min(1, result.confidence)) : 0,
+    riskLevel: (result.riskLevel === 'low' || result.riskLevel === 'medium' || result.riskLevel === 'high') ? result.riskLevel : 'low',
+    reason: result.reason ?? 'Analysis complete',
+    details: Array.isArray(result.details) ? result.details : [],
+    network: result.network ?? undefined,
+  }
+}
+
 async function callOpenRouter(input: string): Promise<AnalysisResult | null> {
   if (!OPENROUTER_API_KEY) return null
 
@@ -52,13 +88,13 @@ async function callOpenRouter(input: string): Promise<AnalysisResult | null> {
         model: MODEL,
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: `Analyze this for scams:\n\n"${input}"` },
+          { role: 'user', content: `Analyze this for scams:\n\n"""${input}"""` },
         ],
         response_format: { type: 'json_object' },
         temperature: 0.1,
-        max_tokens: 500,
+        max_tokens: 1000,
       }),
-      signal: AbortSignal.timeout(45000),
+      signal: AbortSignal.timeout(60000),
     })
 
     if (!res.ok) {
@@ -71,18 +107,13 @@ async function callOpenRouter(input: string): Promise<AnalysisResult | null> {
     const content = data?.choices?.[0]?.message?.content
     if (!content) return null
 
-    const parsed = JSON.parse(content) as Partial<AnalysisResult>
-
-    return {
-      inputType: parsed.inputType ?? 'sms',
-      originalInput: input,
-      isScam: parsed.isScam ?? false,
-      confidence: typeof parsed.confidence === 'number' ? Math.max(0, Math.min(1, parsed.confidence)) : 0,
-      riskLevel: (parsed.riskLevel === 'low' || parsed.riskLevel === 'medium' || parsed.riskLevel === 'high') ? parsed.riskLevel : 'low',
-      reason: parsed.reason ?? 'Analysis complete',
-      details: Array.isArray(parsed.details) ? parsed.details : [],
-      network: parsed.network ?? undefined,
+    const parsed = tryParseJson(content)
+    if (!parsed) {
+      console.error('Failed to parse JSON from content:', content.slice(0, 200))
+      return null
     }
+
+    return validateResult(parsed, input)
   } catch (err) {
     console.error('OpenRouter error:', err)
     return null
