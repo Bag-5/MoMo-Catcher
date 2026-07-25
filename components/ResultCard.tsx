@@ -1,0 +1,124 @@
+'use client'
+
+import { AnalysisResult } from '@/lib/types'
+
+interface ResultCardProps {
+  result: AnalysisResult
+}
+
+const riskColors = {
+  low: {
+    bg: 'bg-emerald-50 dark:bg-emerald-950/30',
+    border: 'border-emerald-200 dark:border-emerald-800',
+    badge: 'bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200',
+    icon: '🟢',
+    label: 'Low Risk',
+  },
+  medium: {
+    bg: 'bg-amber-50 dark:bg-amber-950/30',
+    border: 'border-amber-200 dark:border-amber-800',
+    badge: 'bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200',
+    icon: '🟡',
+    label: 'Medium Risk',
+  },
+  high: {
+    bg: 'bg-red-50 dark:bg-red-950/30',
+    border: 'border-red-200 dark:border-red-800',
+    badge: 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200',
+    icon: '🔴',
+    label: 'High Risk',
+  },
+}
+
+const inputTypeLabels = {
+  sms: 'SMS Message',
+  phone: 'Phone Number',
+  momo_ref: 'MoMo Reference',
+}
+
+export default function ResultCard({ result }: ResultCardProps) {
+  const colors = riskColors[result.riskLevel]
+  const confidencePct = Math.round(result.confidence * 100)
+
+  return (
+    <div className={`rounded-2xl border-2 ${colors.border} ${colors.bg} overflow-hidden animate-fade-in`}>
+      <div className="p-5 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">{colors.icon}</span>
+            <span className={`px-3 py-1 rounded-full text-xs font-bold ${colors.badge}`}>
+              {colors.label}
+            </span>
+          </div>
+          <span className="text-xs text-black/50 dark:text-white/40 bg-black/5 dark:bg-white/10 px-2.5 py-1 rounded-full">
+            {inputTypeLabels[result.inputType]}
+          </span>
+        </div>
+
+        <div>
+          <div className="flex items-baseline justify-between mb-1">
+            <span className="text-sm font-medium text-black/60 dark:text-white/60">
+              Scam Confidence
+            </span>
+            <span className="text-2xl font-bold text-black dark:text-white">
+              {confidencePct}%
+            </span>
+          </div>
+          <div className="w-full h-2.5 rounded-full bg-black/10 dark:bg-white/10 overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all duration-700 ease-out ${
+                result.riskLevel === 'high'
+                  ? 'bg-gradient-to-r from-red-500 to-red-600'
+                  : result.riskLevel === 'medium'
+                    ? 'bg-gradient-to-r from-amber-400 to-amber-500'
+                    : 'bg-gradient-to-r from-emerald-400 to-emerald-500'
+              }`}
+              style={{ width: `${confidencePct}%` }}
+            />
+          </div>
+        </div>
+
+        <div>
+          <p className="font-semibold text-black dark:text-white mb-1">{result.reason}</p>
+          {result.network && (
+            <p className="text-sm text-black/50 dark:text-white/50">
+              Network: <span className="font-medium">{result.network}</span>
+            </p>
+          )}
+        </div>
+
+        {result.details.length > 0 && (
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-black/40 dark:text-white/40 mb-2">
+              Details
+            </p>
+            <ul className="space-y-1">
+              {result.details.map((detail, i) => (
+                <li
+                  key={i}
+                  className="flex items-start gap-2 text-sm text-black/70 dark:text-white/70"
+                >
+                  <span className="mt-0.5 text-xs text-black/30 dark:text-white/30">◆</span>
+                  {detail}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {result.isScam && (
+          <div className="bg-red-100/50 dark:bg-red-950/40 rounded-xl p-4 border border-red-200 dark:border-red-800">
+            <p className="font-semibold text-sm text-red-800 dark:text-red-200 mb-1">
+              ⚠️ Safety Tip
+            </p>
+            <p className="text-sm text-red-700 dark:text-red-300">
+              Never share your MoMo PIN, OTP, or personal details with anyone. 
+              Banks and mobile networks never ask for these via SMS. 
+              Report suspicious messages to your network provider immediately.
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
