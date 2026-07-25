@@ -10,16 +10,36 @@ import { AnalysisResult } from '@/lib/types'
 export default function Home() {
   const [result, setResult] = useState<AnalysisResult | null>(null)
   const [loading, setLoading] = useState(false)
+  const [usedFallback, setUsedFallback] = useState(false)
 
-  function handleAnalyze(input: string) {
+  async function handleAnalyze(input: string) {
     setLoading(true)
     setResult(null)
+    setUsedFallback(false)
 
-    setTimeout(() => {
-      const analysis = analyze(input)
-      setResult(analysis)
+    try {
+      const res = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input }),
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        setResult(data.result)
+        setUsedFallback(data.source === 'fallback')
+      } else {
+        const fallback = analyze(input)
+        setResult(fallback)
+        setUsedFallback(true)
+      }
+    } catch {
+      const fallback = analyze(input)
+      setResult(fallback)
+      setUsedFallback(true)
+    } finally {
       setLoading(false)
-    }, 600)
+    }
   }
 
   function handleClear() {
@@ -60,6 +80,11 @@ export default function Home() {
 
         {result && (
           <div className="mt-8 space-y-4">
+            {usedFallback && (
+              <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-2.5 text-xs text-amber-700 dark:text-amber-300 text-center animate-stagger-2">
+                ⚡ AI analysis unavailable — used local fallback engine
+              </div>
+            )}
             <ResultCard result={result} />
             <button
               onClick={handleClear}
