@@ -25,11 +25,113 @@ body {
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
 
-@keyframes fade-in {
-  from { opacity: 0; transform: translateY(8px); }
+/* === 3D & Perspective Utilities === */
+.perspective-3d {
+  perspective: 800px;
+}
+
+/* === Ghana Flag Wave === */
+@keyframes flag-wave {
+  0%, 100% { transform: scaleY(1); }
+  25% { transform: scaleY(1.15); }
+  50% { transform: scaleY(0.95); }
+  75% { transform: scaleY(1.08); }
+}
+
+.animate-flag-wave {
+  animation: flag-wave 2.5s ease-in-out infinite;
+  transform-origin: center;
+}
+
+/* === Logo Spin === */
+@keyframes logo-spin {
+  from { transform: rotateY(0deg) rotateX(0deg); }
+  to { transform: rotateY(360deg) rotateX(10deg); }
+}
+
+.animate-logo-spin {
+  animation: logo-spin 8s linear infinite;
+}
+
+/* === Logo Float === */
+@keyframes logo-float {
+  0%, 100% { transform: translateY(0px) translateZ(10px); }
+  50% { transform: translateY(-3px) translateZ(15px); }
+}
+
+.animate-logo-float {
+  animation: logo-float 2s ease-in-out infinite;
+}
+
+/* === Gradient Drift Background === */
+@keyframes gradient-drift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-gradient-drift {
+  background-size: 400% 400%;
+  animation: gradient-drift 15s ease infinite;
+}
+
+/* === Floating Orbs === */
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  33% { transform: translateY(-20px) scale(1.05); }
+  66% { transform: translateY(10px) scale(0.95); }
+}
+
+.animate-float-slow {
+  animation: float-slow 12s ease-in-out infinite;
+}
+
+/* === Gradient Shift (for button) === */
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* === Staggered Fade-In === */
+@keyframes stagger-fade-in {
+  from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-.animate-fade-in {
-  animation: fade-in 0.4s ease-out;
+.animate-stagger-1 { animation: stagger-fade-in 0.5s ease-out both; }
+.animate-stagger-2 { animation: stagger-fade-in 0.5s ease-out 0.1s both; }
+.animate-stagger-3 { animation: stagger-fade-in 0.5s ease-out 0.2s both; }
+.animate-stagger-4 { animation: stagger-fade-in 0.5s ease-out 0.3s both; }
+.animate-stagger-5 { animation: stagger-fade-in 0.5s ease-out 0.4s both; }
+
+/* === Subtle Bounce === */
+@keyframes bounce-subtle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+.animate-bounce-subtle {
+  animation: bounce-subtle 2s ease-in-out infinite;
+}
+
+/* === Shake (for warning icons) === */
+@keyframes shake {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-10deg); }
+  75% { transform: rotate(10deg); }
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out infinite;
+}
+
+/* === Pulse Ring === */
+@keyframes pulse-ring {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1.05); opacity: 0; }
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 2s ease-out infinite;
 }

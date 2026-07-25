@@ -19,7 +19,7 @@ export default function Home() {
       const analysis = analyze(input)
       setResult(analysis)
       setLoading(false)
-    }, 400)
+    }, 600)
   }
 
   function handleClear() {
@@ -28,9 +28,16 @@ export default function Home() {
 
   return (
     <>
+      <div className="fixed inset-0 -z-10 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#CE1126]/5 via-[#FCD116]/5 to-[#006B3F]/5 dark:from-[#CE1126]/10 dark:via-[#FCD116]/5 dark:to-[#006B3F]/10 animate-gradient-drift" />
+        <div className="absolute top-1/4 -left-32 w-96 h-96 rounded-full bg-[#CE1126]/10 dark:bg-[#CE1126]/20 blur-3xl animate-float-slow" />
+        <div className="absolute bottom-1/3 -right-32 w-80 h-80 rounded-full bg-[#FCD116]/10 dark:bg-[#FCD116]/20 blur-3xl animate-float-slow" style={{ animationDelay: '-3s' }} />
+        <div className="absolute top-2/3 left-1/3 w-64 h-64 rounded-full bg-[#006B3F]/10 dark:bg-[#006B3F]/20 blur-3xl animate-float-slow" style={{ animationDelay: '-6s' }} />
+      </div>
+
       <GhanaHeader />
       <main className="flex-1 w-full max-w-xl mx-auto px-4 py-8 sm:py-12">
-        <div className="text-center mb-8 space-y-2">
+        <div className="text-center mb-8 space-y-2 animate-stagger-1">
           <h2 className="text-2xl sm:text-3xl font-bold text-black dark:text-white">
             Check if it&apos;s a scam
           </h2>
@@ -42,8 +49,11 @@ export default function Home() {
         <InputBox onAnalyze={handleAnalyze} loading={loading} />
 
         {loading && (
-          <div className="mt-8 flex items-center justify-center gap-3 text-black/40 dark:text-white/40">
-            <span className="inline-block w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+          <div className="mt-8 flex items-center justify-center gap-3 text-black/40 dark:text-white/40 animate-stagger-2">
+            <span className="relative inline-flex">
+              <span className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              <span className="absolute inset-0 w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-ping opacity-20" />
+            </span>
             <span className="text-sm">Analyzing...</span>
           </div>
         )}
@@ -53,7 +63,7 @@ export default function Home() {
             <ResultCard result={result} />
             <button
               onClick={handleClear}
-              className="w-full py-2.5 rounded-xl text-sm font-medium text-black/50 dark:text-white/50 border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+              className="w-full py-2.5 rounded-xl text-sm font-medium text-black/50 dark:text-white/50 border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] animate-stagger-5"
             >
               Check another
             </button>
