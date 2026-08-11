@@ -1,118 +1,172 @@
+<div align="center">
+
 # 🛡️ MoMo Catcher
 
-**Ghana Scam SMS Detector** — a web app that helps Ghanaians spot mobile money fraud before it hurts them. Check suspicious SMS messages, phone numbers, MoMo transaction references, and links for scam indicators, scan screenshots of scam texts, learn how fraudsters operate, and report scams to help the community.
+**Ghana Scam SMS Detector** — *spot mobile money fraud before it hurts you.*
 
-Built as a final-year project at **Accra Technical University (Project ATU 302)**.
+A smart web app that analyzes suspicious SMS messages, phone numbers, MoMo transaction references, and links for scam indicators — powered by AI, built for Ghana.
 
-🌍 **Live:** [https://momo-catcher.vercel.app](https://momo-catcher.vercel.app)
+**Accra Technical University · Project ATU 302**
+
+<br>
+
+[![Next.js](https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+[![OpenRouter](https://img.shields.io/badge/Powered_by_OpenRouter-AAFF00?style=for-the-badge&logo=openrouter&logoColor=black)](https://openrouter.ai)
+[![Neon](https://img.shields.io/badge/Postgres-Neon-00E599?style=for-the-badge&logo=neon&logoColor=black)](https://neon.tech)
+[![Vercel](https://img.shields.io/badge/Deployed_on-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com)
+
+[![Live Demo](https://img.shields.io/badge/🌍_Live_Demo-momo--catcher.vercel.app-006B3F?style=for-the-badge)](https://momo-catcher.vercel.app)
+[![Report Bug](https://img.shields.io/badge/🐛_Report_Bug-GitHub-262626?style=for-the-badge)](https://github.com/Bag-5/MoMo-Catcher/issues)
+
+</div>
+
+---
+
+## 📋 Table of Contents
+
+- [✨ Features](#-features)
+- [🧠 How It Works](#-how-it-works)
+- [🛠️ Tech Stack](#️-tech-stack)
+- [📁 Project Structure](#-project-structure)
+- [🚀 Getting Started](#-getting-started)
+- [📡 API Reference](#-api-reference)
+- [🔒 Privacy](#-privacy)
+- [📚 References](#-references)
 
 ---
 
 ## ✨ Features
 
-### Home
-- **SMS / Phone / MoMo Ref Check** — paste any suspicious message, Ghanaian phone number (024/025/054/055/059/053, 020/050, 027/057/026/056…), or MoMo reference (e.g. `MOMO12ABC345`) and get an instant risk assessment.
-- **Check Link** — analyze URLs for phishing: suspicious TLDs, typosquatted brand domains (MTN, Vodafone, AT, GCB…), shortened-link abuse, and scam keywords.
-- **Scan Screenshot** — take a photo or upload a screenshot of a scam SMS; a vision AI extracts the text and analyzes it for fraud.
+### 🏠 Home — Three Ways to Check
 
-### Results
-- Risk level (low / medium / high), scam confidence score, plain-language reasoning, and a list of the specific scam indicators found.
-- **Report Scam** — flag confirmed scams. Reports are stored in the project database and power the community Dashboard.
+| Mode | What it does |
+|------|-------------|
+| 💬 **SMS / Phone / MoMo Ref** | Paste any suspicious message, Ghanaian number (024, 055, 020, 027…), or MoMo reference (`MOMO12ABC345`) → instant risk assessment |
+| 🔗 **Check Link** | Analyze URLs for phishing — suspicious TLDs, typosquatted brands (MTN, Vodafone, GCB…), shortened links, scam keywords |
+| 📸 **Scan Screenshot** | Snap or upload a screenshot of a scam SMS — vision AI reads the text and analyzes it |
 
-### Learn
-- **Scam Categories** — in-depth guides to the 8 most common Ghanaian scam tricks: Agyapade/fake lottery, MoMo PIN phishing, SIM swap, fake deposits, fake promos, romance scams, employment scams, and ghost-salary scams — each with red flags and how to report.
-- **Quizzes** — 12 real-world scenarios to test your scam radar, with explanations and best-score tracking.
+### 📊 Results
+- Risk level (**low / medium / high**) with an animated confidence score
+- Plain-language reasoning + the exact scam indicators found
+- 🚨 **Report Scam** — flag confirmed scams to the community database
 
-### Dashboard
-- **Scam statistics** — total checks, scam rate, and average confidence from your on-device scan history.
-- **Report statistics** — live community reports by category.
-- **Common scam types** — the top indicators detected, ranked.
-- **Clear local data** — wipe scan history and quiz scores anytime.
+### 📚 Learn
+- **Scam Categories** — deep dives into Ghana's 8 deadliest tricks: Agyapade fake lottery, MoMo PIN phishing, SIM swap, fake deposits, fake promos, romance scams, employment scams, ghost-salary scams — each with red flags & how to report
+- **Quizzes** — 12 real-world scenarios, instant explanations, best-score tracking
 
-### Privacy
-- A plain-language policy covering exactly what is stored (on-device summaries only), what is sent to the AI service for single-use analysis, and how reporting works. No accounts, no cookies, no tracking.
+### 📈 Dashboard
+- **Scam statistics** — total checks, scam rate, average confidence
+- **Report statistics** — live community reports by category
+- **Common scam types** — top detected indicators, ranked
+- 🗑️ **Clear local data** — full privacy control
+
+### 🔒 Privacy
+- Plain-language policy: what's stored on-device, what's sent to the AI, how reporting works
+- **No accounts. No cookies. No tracking.**
 
 ---
 
-## 🧠 How it works
+## 🧠 How It Works
 
 ```
-User input (SMS / phone / MoMo ref / link / screenshot)
-        │
-        ▼
-┌──────────────────────┐   OpenRouter (AI)    ┌──────────────────────┐
-│  POST /api/analyze   │ ───────────────────▶ │  LLM analysis        │
-│  (Next.js route)     │ ◀─────────────────── │  gpt-oss-20b (text)  │
-└──────────────────────┘   JSON result        │  gemma-4-26b (vision)│
-        │                                      └──────────────────────┘
-        │ fallback if AI unavailable
-        ▼
-┌──────────────────────┐
-│  Local heuristic     │  regex-based analyzers for SMS, phone,
-│  fallback engine     │  MoMo refs, and URLs (lib/analyzers/)
-└──────────────────────┘
-        │
-        ▼
-┌──────────────────────┐   Neon Postgres      ┌──────────────────────┐
-│  POST /api/report    │ ───────────────────▶ │  reports table       │
-│  GET  /api/reports/  │                      │  (community stats)   │
-│       stats          │                      └──────────────────────┘
-└──────────────────────┘
+        ┌─────────────────────────────────────────────────────────────┐
+        │  User input: SMS · Phone · MoMo ref · Link · Screenshot     │
+        └─────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+        ┌─────────────────────────────────────────────────────────────┐
+        │              POST /api/analyze (Next.js route)              │
+        │                                                             │
+        │   ┌─────────────────────┐      ┌─────────────────────────┐  │
+        │   │  OpenRouter AI      │      │  Local fallback engine  │  │
+        │   │  · gpt-oss-20b      │◀────▶│  regex analyzers for    │  │
+        │   │  · gemma-4-26b      │  ai  │  SMS / phone / momo /   │  │
+        │   │    (vision)         │ fail │  URL                    │  │
+        │   └─────────────────────┘      └─────────────────────────┘  │
+        └─────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+        ┌─────────────────────────────────────────────────────────────┐
+        │              Result: risk, confidence, details              │
+        └─────────────────────────────────────────────────────────────┘
+                                    │
+                            🚨 Report Scam?
+                                    │
+                                    ▼
+        ┌─────────────────────────────────────────────────────────────┐
+        │      POST /api/report ──▶ Neon Postgres ──▶ Dashboard       │
+        └─────────────────────────────────────────────────────────────┘
 ```
 
-**AI analysis** uses [OpenRouter](https://openrouter.ai) free-tier models:
-- Text (SMS / phone / MoMo / link): `openai/gpt-oss-20b:free`, with automatic fallback to `google/gemma-4-31b-it:free` and `nvidia/nemotron-nano-9b-v2:free` when rate-limited.
-- Screenshots (vision): `google/gemma-4-26b-a4b-it:free`, fallback `nvidia/nemotron-nano-12b-v2-vl:free`.
+**🤖 AI Analysis** — [OpenRouter](https://openrouter.ai) free-tier models with automatic failover:
 
-**Reports** are stored in a [Neon](https://neon.tech) Postgres database (`reports` table) and aggregated for the Dashboard. No reporter identity is collected.
+| Purpose | Primary model | Fallbacks |
+|---------|--------------|-----------|
+| Text (SMS / phone / MoMo / link) | `openai/gpt-oss-20b:free` | `google/gemma-4-31b-it:free` → `nvidia/nemotron-nano-9b-v2:free` |
+| Screenshots (vision) | `google/gemma-4-26b-a4b-it:free` | `nvidia/nemotron-nano-12b-v2-vl:free` |
 
-**On-device data** — scan summaries (type, risk, confidence, top indicator) and quiz best scores live only in the browser's `localStorage`. Full message text is never stored.
+**🗄️ Reports** — stored in [Neon](https://neon.tech) Postgres, aggregated for the Dashboard. **No reporter identity is ever collected.**
+
+**📱 On-device data** — scan summaries & quiz scores live only in `localStorage`. Full message text is never stored anywhere.
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Layer      | Technology |
-|------------|-----------|
-| Framework  | Next.js 16 (App Router, TypeScript, Turbopack) |
-| Styling    | Tailwind CSS with custom 3D/flag-gradient animations |
-| AI         | OpenRouter API (free-tier LLMs, text + vision) |
-| Database   | Neon Postgres (`@neondatabase/serverless`) |
-| Deploy     | Vercel (auto-deploy from `master`) |
+<p align="center">
+  <img src="https://img.shields.io/badge/Next.js_16-000000?logo=next.js&logoColor=white" alt="Next.js">
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white" alt="TypeScript">
+  <img src="https://img.shields.io/badge/Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=white" alt="Tailwind">
+  <img src="https://img.shields.io/badge/OpenRouter_API-AAFF00?logo=openrouter&logoColor=black" alt="OpenRouter">
+  <img src="https://img.shields.io/badge/Neon_Postgres-00E599?logo=neon&logoColor=black" alt="Neon">
+  <img src="https://img.shields.io/badge/Vercel-000000?logo=vercel&logoColor=white" alt="Vercel">
+</p>
+
+| Layer | Technology |
+|-------|-----------|
+| **Framework** | Next.js 16 · App Router · Turbopack |
+| **Language** | TypeScript |
+| **Styling** | Tailwind CSS + custom 3D flag-gradient animations |
+| **AI** | OpenRouter API (free-tier LLMs — text & vision) |
+| **Database** | Neon Postgres via `@neondatabase/serverless` |
+| **Deployment** | Vercel — auto-deploy from `master` |
 
 ---
 
 ## 📁 Project Structure
 
-```
-app/
-├── api/
-│   ├── analyze/route.ts        # AI + fallback analysis (text, link, screenshot)
-│   ├── report/route.ts         # POST scam reports → Neon
-│   └── reports/stats/route.ts  # GET report statistics
-├── dashboard/page.tsx          # Statistics dashboard
-├── learn/
-│   ├── page.tsx                # Learn hub
-│   ├── categories/page.tsx     # Scam category guides
-│   └── quiz/page.tsx           # Interactive quiz
-├── privacy/page.tsx            # Privacy policy
-├── layout.tsx                  # Root layout + bottom navigation
-└── page.tsx                    # Home (check SMS / link / screenshot)
-components/
-├── BottomNav.tsx               # Mobile bottom tab bar
-├── GhanaHeader.tsx             # Flag-themed header
-├── InputBox.tsx                # SMS / phone / MoMo input
-├── LinkChecker.tsx             # URL input
-├── ScreenshotScanner.tsx       # Image upload + camera capture
-├── ResultCard.tsx              # Risk result display
-└── ReportModal.tsx             # Report scam form
-lib/
-├── analyze.ts                  # Local fallback dispatcher
-├── analyzers/                  # Regex engines: sms, phone, momo, url
-├── scamCategories.ts           # Learn content data
-├── quizzes.ts                  # Quiz question data
-├── storage.ts                  # localStorage helpers
-└── types.ts                    # Shared TypeScript types
+```text
+momo-catcher/
+├── app/
+│   ├── api/
+│   │   ├── analyze/route.ts        # AI + fallback analysis (text, link, screenshot)
+│   │   ├── report/route.ts         # POST scam reports → Neon
+│   │   └── reports/stats/route.ts  # GET report statistics
+│   ├── dashboard/page.tsx          # Statistics dashboard
+│   ├── learn/
+│   │   ├── page.tsx                # Learn hub
+│   │   ├── categories/page.tsx     # Scam category guides
+│   │   └── quiz/page.tsx           # Interactive quiz
+│   ├── privacy/page.tsx            # Privacy policy
+│   ├── layout.tsx                  # Root layout + bottom navigation
+│   └── page.tsx                    # Home — SMS / link / screenshot check
+├── components/
+│   ├── BottomNav.tsx               # Mobile bottom tab bar
+│   ├── GhanaHeader.tsx             # Flag-themed header
+│   ├── InputBox.tsx                # SMS / phone / MoMo input
+│   ├── LinkChecker.tsx             # URL input
+│   ├── ScreenshotScanner.tsx       # Image upload + camera capture
+│   ├── ResultCard.tsx              # Risk result display
+│   └── ReportModal.tsx             # Report scam form
+└── lib/
+    ├── analyze.ts                  # Local fallback dispatcher
+    ├── analyzers/                  # Regex engines: sms, phone, momo, url
+    ├── scamCategories.ts           # Learn content data
+    ├── quizzes.ts                  # Quiz question data
+    ├── storage.ts                  # localStorage helpers
+    └── types.ts                    # Shared TypeScript types
 ```
 
 ---
@@ -120,25 +174,32 @@ lib/
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js 18+
-- An [OpenRouter](https://openrouter.ai) API key (free tier works)
-- A [Neon](https://neon.tech) Postgres project (optional — only needed for the Report feature)
+
+- [Node.js](https://nodejs.org) 18+
+- [OpenRouter](https://openrouter.ai) API key *(free tier works)*
+- [Neon](https://neon.tech) Postgres project *(only needed for the Report feature)*
 
 ### Setup
 
 ```bash
-# 1. Clone and install
+# 1. Clone the repo
 git clone https://github.com/Bag-5/MoMo-Catcher.git
 cd MoMo-Catcher
+
+# 2. Install dependencies
 npm install
+```
 
-# 2. Create the environment file
-# .env.local
-OPENROUTER_API_KEY=sk-or-v1-...
-DATABASE_URL=postgresql://...@...neon.tech/neondb?sslmode=require
+```bash
+# 3. Create the environment file (.env.local)
+# OpenRouter key — required for AI analysis
+OPENROUTER_API_KEY=sk-or-v1-xxxxxxxxxxxx
+# Neon connection string — optional, powers the Report feature
+DATABASE_URL=postgresql://user:password@host.neon.tech/neondb?sslmode=require
+```
 
-# 3. Create the reports table (if using Neon)
-# Run in your Neon SQL editor:
+```bash
+# 4. Create the reports table (in your Neon SQL editor)
 CREATE TABLE IF NOT EXISTS reports (
   id SERIAL PRIMARY KEY,
   category TEXT NOT NULL,
@@ -147,16 +208,18 @@ CREATE TABLE IF NOT EXISTS reports (
   risk_level TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+```
 
-# 4. Run it
+```bash
+# 5. Run it
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+> 🌐 Open [http://localhost:3000](http://localhost:3000)
 
-> Without `DATABASE_URL`, the app still works fully except the Report feature and Dashboard report stats.
+> 💡 **No `DATABASE_URL`?** The app still works fully — only the Report feature and Dashboard report stats are disabled.
 
-### Build & production
+### Production
 
 ```bash
 npm run build
@@ -168,29 +231,47 @@ npm run start
 ## 📡 API Reference
 
 ### `POST /api/analyze`
+
 Analyze text, a link, or a screenshot.
 
 ```jsonc
-// Text (SMS / phone / MoMo ref / link)
+// 💬 Text (SMS / phone / MoMo ref)
 { "input": "Congratulations! You won GHS 50,000. Call 0243000000 to claim", "type": "text" }
 
-// Link
+// 🔗 Link
 { "input": "https://mtn-promo-winners-claim.xyz/verify", "type": "link" }
 
-// Screenshot (base64, JPEG — resized client-side)
+// 📸 Screenshot (base64 JPEG — resized client-side)
 { "type": "screenshot", "imageBase64": "..." }
 ```
 
-**Response:** `{ "source": "ai" | "fallback", "result": { inputType, isScam, confidence, riskLevel, reason, details[], network?, extractedText? } }`
+**Response:**
+
+```jsonc
+{
+  "source": "ai",              // "ai" or "fallback"
+  "result": {
+    "inputType": "sms",        // "sms" | "phone" | "momo_ref" | "link" | "screenshot"
+    "isScam": true,
+    "confidence": 0.95,        // 0 = safe, 1 = definitely a scam
+    "riskLevel": "high",       // "low" | "medium" | "high"
+    "reason": "Fake lottery scam — you never entered this promo",
+    "details": ["Claims a prize you never entered", "Asks you to call a random number"],
+    "network": "MTN",          // detected network (optional)
+    "extractedText": "..."     // screenshots only (optional)
+  }
+}
+```
 
 ### `POST /api/report`
+
 Submit a scam report.
 
 ```jsonc
 {
   "category": "Agyapade / Fake Lottery",   // one of the 8 categories
-  "note": "optional note",
-  "inputExcerpt": "truncated sample of the scam message",
+  "note": "The caller asked for my MoMo PIN",  // optional
+  "inputExcerpt": "Congratulations! You won GHS 50,000…",  // truncated sample
   "riskLevel": "high"
 }
 ```
@@ -198,27 +279,49 @@ Submit a scam report.
 **Response:** `{ "ok": true, "id": 1 }`
 
 ### `GET /api/reports/stats`
-**Response:** `{ "total": 12, "byCategory": { "Agyapade / Fake Lottery": 5, ... } }`
+
+**Response:**
+
+```jsonc
+{
+  "total": 12,
+  "byCategory": {
+    "Agyapade / Fake Lottery": 5,
+    "MoMo PIN Phishing": 4
+  }
+}
+```
 
 ---
 
-## 🔒 Privacy Summary
+## 🔒 Privacy
 
-- **On-device:** scan summaries + quiz scores in browser `localStorage`; full message text is never stored.
-- **AI analysis:** your input (text or screenshot) is sent to OpenRouter for a single analysis request and is not stored by us.
-- **Reporting:** voluntary — sends category, optional note, and a short excerpt to the project database. No personal identity is collected.
-- **No accounts, cookies, or tracking.**
+> **The bottom line:** everything you check stays on your device unless you *choose* to report a scam.
 
-Full details on the [Privacy page](https://momo-catcher.vercel.app/privacy).
+| Data | Where it goes |
+|------|--------------|
+| Scan summaries (type, risk, confidence) | 🖥️ **Your browser** — `localStorage`, cleared anytime |
+| Full message text | ❌ **Nowhere** — never stored |
+| AI analysis input (text / screenshot) | 🤖 OpenRouter — **single request**, not stored by us |
+| Scam reports (category, note, excerpt) | 🗄️ Neon database — **voluntary**, anonymous |
+
+No accounts. No cookies. No tracking. See the [Privacy page](https://momo-catcher.vercel.app/privacy) for the full policy.
 
 ---
 
 ## 📚 References
 
-- [National Communications Authority (NCA) — scam reporting (shortcode 500)](https://nca.org.gh)
-- [OpenRouter API docs](https://openrouter.ai/docs)
-- [Neon — serverless Postgres](https://neon.tech/docs)
+- [National Communications Authority (NCA) — scam reporting, shortcode 500](https://nca.org.gh)
+- [OpenRouter API Documentation](https://openrouter.ai/docs)
+- [Neon — Serverless Postgres](https://neon.tech/docs)
+- [Next.js Documentation](https://nextjs.org/docs)
 
 ---
 
-*Accra Technical University • Project ATU 302*
+<div align="center">
+
+*Built with ❤️ in Accra — for a safer Ghana.*
+
+**Accra Technical University · Project ATU 302**
+
+</div>
