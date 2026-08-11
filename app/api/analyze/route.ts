@@ -4,8 +4,15 @@ import { analyzeUrl } from '@/lib/analyzers/url'
 import { AnalysisResult, CheckMode } from '@/lib/types'
 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY
-const TEXT_MODEL = 'openai/gpt-oss-20b:free'
-const VISION_MODEL = 'google/gemma-4-26b-a4b-it:free'
+const TEXT_MODELS = [
+  'openai/gpt-oss-20b:free',
+  'google/gemma-4-31b-it:free',
+  'nvidia/nemotron-nano-9b-v2:free',
+]
+const VISION_MODELS = [
+  'google/gemma-4-26b-a4b-it:free',
+  'nvidia/nemotron-nano-12b-v2-vl:free',
+]
 const MAX_IMAGE_BYTES = 4_500_000
 
 const TEXT_PROMPT = `You are a Ghanaian mobile money fraud analyst. Your job is to analyze SMS messages, phone numbers, MoMo transaction references, and links for scam indicators.
@@ -101,7 +108,7 @@ async function callOpenRouter(
 ): Promise<AnalysisResult | null> {
   if (!OPENROUTER_API_KEY) return null
 
-  const model = type === 'screenshot' ? VISION_MODEL : TEXT_MODEL
+  const models = type === 'screenshot' ? VISION_MODELS : TEXT_MODELS
   const messages =
     type === 'screenshot'
       ? [
@@ -122,46 +129,50 @@ async function callOpenRouter(
           { role: 'user', content: `Analyze this for scams:\n\n"""${input}"""` },
         ]
 
-  try {
-    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://momo-catcher.vercel.app',
-        'X-Title': 'MoMo Catcher',
-      },
-      body: JSON.stringify({
-        model,
-        messages,
-        response_format: { type: 'json_object' },
-        temperature: 0.1,
-        max_tokens: 1000,
-      }),
-      signal: AbortSignal.timeout(60000),
-    })
+  for (const model of models) {
+    try {
+      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://momo-catcher.vercel.app',
+          'X-Title': 'MoMo Catcher',
+        },
+        body: JSON.stringify({
+          model,
+          messages,
+          response_format: { type: 'json_object' },
+          temperature: 0.1,
+          max_tokens: 1000,
+        }),
+        signal: AbortSignal.timeout(60000),
+      })
 
-    if (!res.ok) {
-      const errText = await res.text().catch(() => 'unknown')
-      console.error(`OpenRouter ${res.status}: ${errText}`)
-      return null
+      if (!res.ok) {
+        const errText = await res.text().catch(() => 'unknown')
+        console.error(`OpenRouter ${res.status} (${model}): ${errText.slice(0, 300)}`)
+        continue
+      }
+
+      const data = await res.json()
+      const content = data?.choices?.[0]?.message?.content
+      if (!content) continue
+
+      const parsed = tryParseJson(content)
+      if (!parsed) {
+        console.error(`Failed to parse JSON from ${model}:`, content.slice(0, 200))
+        continue
+      }
+
+      return validateResult(parsed, input)
+    } catch (err) {
+      console.error(`OpenRouter error (${model}):`, err)
+      continue
     }
-
-    const data = await res.json()
-    const content = data?.choices?.[0]?.message?.content
-    if (!content) return null
-
-    const parsed = tryParseJson(content)
-    if (!parsed) {
-      console.error('Failed to parse JSON from content:', content.slice(0, 200))
-      return null
-    }
-
-    return validateResult(parsed, input)
-  } catch (err) {
-    console.error('OpenRouter error:', err)
-    return null
   }
+
+  return null
 }
 
 function localFallback(input: string, type: CheckMode): AnalysisResult {
