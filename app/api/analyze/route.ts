@@ -1,15 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { analyze } from '@/lib/analyze'
-import { AnalysisResult } from '@/lib/types'
+import { analyzeUrl } from '@/lib/analyzers/url'
+import { AnalysisResult, CheckMode } from '@/lib/types'
 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY
-const MODEL = 'openai/gpt-oss-20b:free'
+const TEXT_MODEL = 'openai/gpt-oss-20b:free'
+const VISION_MODEL = 'google/gemma-4-26b-a4b-it:free'
+const MAX_IMAGE_BYTES = 4_500_000
 
-const SYSTEM_PROMPT = `You are a Ghanaian mobile money fraud analyst. Your job is to analyze SMS messages, phone numbers, and MoMo transaction references for scam indicators.
+const TEXT_PROMPT = `You are a Ghanaian mobile money fraud analyst. Your job is to analyze SMS messages, phone numbers, MoMo transaction references, and links for scam indicators.
 
 Analyze the input and return ONLY a JSON object with these fields:
 {
-  "inputType": "sms" | "phone" | "momo_ref",
+  "inputType": "sms" | "phone" | "momo_ref" | "link",
   "isScam": boolean,
   "confidence": number between 0 and 1 (0 = definitely safe, 1 = definitely a scam),
   "riskLevel": "low" | "medium" | "high",
@@ -34,7 +37,25 @@ Phone numbers: validate against Ghana format (+233 or 0 followed by 24,25,54,55,
 
 MoMo refs: typical format is MOMO + alphanumeric, 8-20 chars.
 
+Links: check for shortened URLs, suspicious TLDs, typosquatted brand domains (mtn, vodafone, airteltigo, gcb, ecobank), phishing keywords (login, verify, claim, prize), and http vs https.
+
 Be thorough but fair. Legitimate transaction SMS from banks or networks should score low.`
+
+const SCREENSHOT_PROMPT = `You are a Ghanaian mobile money fraud analyst. Extract ALL visible text from the screenshot in this image, then analyze it for scam indicators (Agyapade fake lottery, MoMo PIN phishing, fake deposits, SIM swap tricks, fake promos, romance scams).
+
+Return ONLY a JSON object with these fields:
+{
+  "inputType": "screenshot",
+  "isScam": boolean,
+  "confidence": number between 0 and 1 (0 = definitely safe, 1 = definitely a scam),
+  "riskLevel": "low" | "medium" | "high",
+  "reason": short explanation,
+  "details": array of specific scam indicators found,
+  "network": detected Ghanaian network or null,
+  "extractedText": the full text you extracted from the screenshot
+}
+
+If the screenshot contains no readable text, set isScam to false, confidence to 0, riskLevel to "low", and explain in the reason that no text was found.`
 
 function tryParseJson(text: string): Partial<AnalysisResult> | null {
   const trimmed = text.trim()
@@ -69,11 +90,37 @@ function validateResult(result: Partial<AnalysisResult>, input: string): Analysi
     reason: result.reason ?? 'Analysis complete',
     details: Array.isArray(result.details) ? result.details : [],
     network: result.network ?? undefined,
+    extractedText: typeof result.extractedText === 'string' ? result.extractedText : undefined,
   }
 }
 
-async function callOpenRouter(input: string): Promise<AnalysisResult | null> {
+async function callOpenRouter(
+  input: string,
+  type: 'text' | 'screenshot',
+  imageBase64?: string,
+): Promise<AnalysisResult | null> {
   if (!OPENROUTER_API_KEY) return null
+
+  const model = type === 'screenshot' ? VISION_MODEL : TEXT_MODEL
+  const messages =
+    type === 'screenshot'
+      ? [
+          { role: 'system', content: SCREENSHOT_PROMPT },
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'image_url',
+                image_url: { url: `data:image/jpeg;base64,${imageBase64}` },
+              },
+              { type: 'text', text: 'Analyze this screenshot for scams.' },
+            ],
+          },
+        ]
+      : [
+          { role: 'system', content: TEXT_PROMPT },
+          { role: 'user', content: `Analyze this for scams:\n\n"""${input}"""` },
+        ]
 
   try {
     const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -85,11 +132,8 @@ async function callOpenRouter(input: string): Promise<AnalysisResult | null> {
         'X-Title': 'MoMo Catcher',
       },
       body: JSON.stringify({
-        model: MODEL,
-        messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: `Analyze this for scams:\n\n"""${input}"""` },
-        ],
+        model,
+        messages,
         response_format: { type: 'json_object' },
         temperature: 0.1,
         max_tokens: 1000,
@@ -120,19 +164,46 @@ async function callOpenRouter(input: string): Promise<AnalysisResult | null> {
   }
 }
 
+function localFallback(input: string, type: CheckMode): AnalysisResult {
+  if (type === 'link') return analyzeUrl(input)
+  return analyze(input)
+}
+
 export async function POST(req: NextRequest) {
-  const { input } = await req.json() as { input?: string }
-  if (!input || typeof input !== 'string' || !input.trim()) {
+  const body = await req.json() as { input?: string; type?: CheckMode; imageBase64?: string }
+  const type: CheckMode = body.type === 'link' || body.type === 'screenshot' ? body.type : 'text'
+  const trimmed = (body.input ?? '').trim()
+
+  if (type === 'screenshot') {
+    if (!body.imageBase64 || typeof body.imageBase64 !== 'string') {
+      return NextResponse.json({ error: 'No image provided' }, { status: 400 })
+    }
+    if (body.imageBase64.length > MAX_IMAGE_BYTES) {
+      return NextResponse.json({ error: 'Image too large' }, { status: 413 })
+    }
+
+    const aiResult = await callOpenRouter('', 'screenshot', body.imageBase64)
+    if (aiResult) {
+      return NextResponse.json({ source: 'ai', result: aiResult })
+    }
+    return NextResponse.json(
+      {
+        source: 'error',
+        error: 'Screenshot analysis is unavailable right now. Please try again in a moment.',
+      },
+      { status: 503 },
+    )
+  }
+
+  if (!trimmed) {
     return NextResponse.json({ error: 'No input provided' }, { status: 400 })
   }
 
-  const trimmed = input.trim()
-  const aiResult = await callOpenRouter(trimmed)
-
+  const aiResult = await callOpenRouter(trimmed, 'text')
   if (aiResult) {
     return NextResponse.json({ source: 'ai', result: aiResult })
   }
 
-  const fallback = analyze(trimmed)
+  const fallback = localFallback(trimmed, type)
   return NextResponse.json({ source: 'fallback', result: fallback })
 }

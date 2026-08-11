@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import BottomNav from "@/components/BottomNav";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,7 +15,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "MoMo Catcher — Ghana Scam SMS Detector",
-  description: "Paste any SMS, phone number, or MoMo reference to check if it's a scam. All analysis happens on your device — nothing is stored.",
+  description:
+    "Check suspicious SMS, phone numbers, MoMo references, and links for scams. Scan screenshots, learn about Ghanaian scam tricks, and report scams — all in one place.",
 };
 
 export default function RootLayout({
@@ -27,7 +29,10 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col pb-24">
+        {children}
+        <BottomNav />
+      </body>
     </html>
   );
 }

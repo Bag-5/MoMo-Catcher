@@ -36,6 +36,8 @@ const inputTypeLabels = {
   sms: 'SMS Message',
   phone: 'Phone Number',
   momo_ref: 'MoMo Reference',
+  link: 'Link',
+  screenshot: 'Screenshot',
 }
 
 export default function ResultCard({ result }: ResultCardProps) {
@@ -93,6 +95,16 @@ export default function ResultCard({ result }: ResultCardProps) {
               <p className="text-sm text-black/50 dark:text-white/50">
                 Network: <span className="font-medium">{result.network}</span>
               </p>
+            )}
+            {result.extractedText && (
+              <details className="mt-2 group">
+                <summary className="text-xs font-medium text-black/40 dark:text-white/40 cursor-pointer hover:text-black/70 dark:hover:text-white/70">
+                  📄 Extracted text from screenshot
+                </summary>
+                <p className="mt-2 text-sm text-black/60 dark:text-white/60 bg-black/5 dark:bg-white/5 rounded-xl px-3 py-2 whitespace-pre-wrap">
+                  {result.extractedText}
+                </p>
+              </details>
             )}
           </div>
 

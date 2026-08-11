@@ -123,8 +123,8 @@ export default function InputBox({ onAnalyze, loading }: InputBoxProps) {
         )}
       </button>
 
-      <p className="text-xs text-center text-black/40 dark:text-white/30 animate-stagger-2">
-        All analysis happens on your device. Nothing is stored or sent anywhere.
+      <p className="text-xs text-center text-black/40 dark:text-white/30">
+        Your text is sent to the AI service for a single analysis — never stored. See Privacy for details.
       </p>
     </div>
   )
