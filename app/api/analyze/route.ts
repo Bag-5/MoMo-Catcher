@@ -174,6 +174,18 @@ async function callOpenRouter(
         continue
       }
 
+      // A model that returned nothing to judge on (no confidence, no details, no
+      // reasoning) has not actually analysed the input. Treating that as a
+      // "safe" verdict would silently hide a rate-limited or confused model, so
+      // fall through to the next model instead.
+      const hasConfidence = typeof parsed.confidence === 'number' && parsed.confidence > 0
+      const hasDetails = Array.isArray(parsed.details) && parsed.details.length > 0
+      const hasReason = typeof parsed.reason === 'string' && parsed.reason.trim().length > 0
+      if (!hasConfidence && !hasDetails && !hasReason) {
+        console.error(`Model ${model} returned an empty analysis, trying next model`)
+        continue
+      }
+
       return validateResult(parsed, input)
     } catch (err) {
       console.error(`OpenRouter error (${model}):`, err)
