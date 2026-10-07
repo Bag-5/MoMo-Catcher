@@ -4,18 +4,21 @@ import { analyzeUrl } from '@/lib/analyzers/url'
 import { AnalysisResult, CheckMode } from '@/lib/types'
 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY
-const TEXT_MODELS = [
-  'openai/gpt-oss-20b',
-  'mistralai/mistral-small-24b-instruct-2501',
-  'google/gemma-4-31b-it:free',
-  'nvidia/nemotron-nano-9b-v2:free',
-]
-const VISION_MODELS = [
-  'qwen/qwen3.7-flash',
-  'google/gemma-4-26b-a4b-it',
-  'nvidia/nemotron-nano-12b-v2-vl',
-]
 const MAX_IMAGE_BYTES = 4_500_000
+
+/**
+ * Model chains are configured via environment variables (comma-separated), not
+ * hardcoded, so they can be changed from the Vercel dashboard without a deploy:
+ *   TEXT_MODELS   = model-id-1,model-id-2,...
+ *   VISION_MODELS = model-id-1,model-id-2,...
+ */
+function parseModelList(value: string | undefined): string[] {
+  if (!value) return []
+  return value
+    .split(',')
+    .map(id => id.trim())
+    .filter(Boolean)
+}
 
 const TEXT_PROMPT = `You are a Ghanaian mobile money fraud analyst. Your job is to analyze SMS messages, phone numbers, MoMo transaction references, and links for scam indicators.
 
@@ -110,7 +113,11 @@ async function callOpenRouter(
 ): Promise<AnalysisResult | null> {
   if (!OPENROUTER_API_KEY) return null
 
-  const models = type === 'screenshot' ? VISION_MODELS : TEXT_MODELS
+  const models = type === 'screenshot' ? parseModelList(process.env.VISION_MODELS) : parseModelList(process.env.TEXT_MODELS)
+  if (models.length === 0) {
+    console.error(`No models configured: ${type === 'screenshot' ? 'VISION_MODELS' : 'TEXT_MODELS'} env var is missing or empty`)
+    return null
+  }
   const messages =
     type === 'screenshot'
       ? [
