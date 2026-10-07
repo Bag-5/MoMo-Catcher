@@ -146,7 +146,7 @@ async function callOpenRouter(
           messages,
           response_format: { type: 'json_object' },
           temperature: 0.1,
-          max_tokens: 1000,
+          max_tokens: 1600,
         }),
         signal: AbortSignal.timeout(60000),
       })
