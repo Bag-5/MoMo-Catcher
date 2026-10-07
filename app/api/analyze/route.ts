@@ -5,6 +5,7 @@ import { AnalysisResult, CheckMode } from '@/lib/types'
 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY
 const TEXT_MODELS = [
+  'mistralai/mistral-small-24b-instruct-2501',
   'openai/gpt-oss-20b',
   'google/gemma-4-31b-it:free',
   'nvidia/nemotron-nano-9b-v2:free',
