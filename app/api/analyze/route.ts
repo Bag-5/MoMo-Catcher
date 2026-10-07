@@ -5,13 +5,14 @@ import { AnalysisResult, CheckMode } from '@/lib/types'
 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY
 const TEXT_MODELS = [
-  'openai/gpt-oss-20b:free',
+  'openai/gpt-oss-20b',
   'google/gemma-4-31b-it:free',
   'nvidia/nemotron-nano-9b-v2:free',
 ]
 const VISION_MODELS = [
+  'google/gemma-4-26b-a4b-it',
+  'nvidia/nemotron-nano-12b-v2-vl',
   'google/gemma-4-26b-a4b-it:free',
-  'nvidia/nemotron-nano-12b-v2-vl:free',
 ]
 const MAX_IMAGE_BYTES = 4_500_000
 
